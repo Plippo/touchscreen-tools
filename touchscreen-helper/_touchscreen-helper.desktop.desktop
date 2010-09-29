@@ -1,0 +1,15 @@
+
+[Desktop Entry]
+Version=1.0
+Name=Touchscreen Helper
+Comment=Handles rotating and calibrating touchscreens
+Name[de]=Touchscreen-Helfer
+Comment[de]=Verwaltet die Drehung und Kalibrierung von Touchscreens
+Exec=touchscreen-helper
+Icon=touchscreen
+Terminal=false
+Type=Application
+Categories=
+X-GNOME-Autostart-Phase=Initialization
+
+Name[de_DE]=_touchscreen-helper.desktop

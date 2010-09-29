@@ -1,0 +1,114 @@
+<?xml version="1.0"?>
+<interface>
+  <requires lib="gtk+" version="2.16"/>
+  <!-- interface-naming-policy project-wide -->
+  <object class="GtkWindow" id="winCalibrate">
+    <property name="events">GDK_BUTTON_RELEASE_MASK | GDK_STRUCTURE_MASK</property>
+    <property name="title" translatable="yes">Touchscreen calibration</property>
+    <property name="modal">True</property>
+    <property name="skip_pager_hint">True</property>
+    <property name="urgency_hint">True</property>
+    <property name="decorated">False</property>
+    <child>
+      <object class="GtkTable" id="table1">
+        <property name="visible">True</property>
+        <property name="n_rows">5</property>
+        <property name="n_columns">5</property>
+        <property name="homogeneous">True</property>
+        <signal name="realize" handler="on_table1_realize"/>
+        <child>
+          <object class="GtkLabel" id="cross1">
+            <property name="visible">True</property>
+            <property name="label" translatable="yes">+</property>
+            <attributes>
+              <attribute name="weight" value="bold"/>
+              <attribute name="absolute-size" value="20000"/>
+            </attributes>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel" id="cross2">
+            <property name="label" translatable="yes">+</property>
+            <attributes>
+              <attribute name="weight" value="bold"/>
+              <attribute name="absolute-size" value="20000"/>
+            </attributes>
+          </object>
+          <packing>
+            <property name="left_attach">4</property>
+            <property name="right_attach">5</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel" id="cross3">
+            <property name="label" translatable="yes">+</property>
+            <attributes>
+              <attribute name="weight" value="bold"/>
+              <attribute name="absolute-size" value="20000"/>
+            </attributes>
+          </object>
+          <packing>
+            <property name="top_attach">4</property>
+            <property name="bottom_attach">5</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel" id="cross4">
+            <property name="label" translatable="yes">+</property>
+            <attributes>
+              <attribute name="weight" value="bold"/>
+              <attribute name="absolute-size" value="20000"/>
+            </attributes>
+          </object>
+          <packing>
+            <property name="left_attach">4</property>
+            <property name="right_attach">5</property>
+            <property name="top_attach">4</property>
+            <property name="bottom_attach">5</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkProgressBar" id="prgTimer">
+            <property name="width_request">150</property>
+            <property name="visible">True</property>
+            <property name="fraction">1</property>
+            <property name="orientation">right-to-left</property>
+          </object>
+          <packing>
+            <property name="left_attach">1</property>
+            <property name="right_attach">4</property>
+            <property name="top_attach">4</property>
+            <property name="bottom_attach">5</property>
+            <property name="x_options"></property>
+            <property name="y_options"></property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel" id="label1">
+            <property name="visible">True</property>
+            <property name="label" translatable="yes">Please tap with your stylus/finger on the cross and repeat this at every new position. To cancel the calibration, simply wait for a few seconds.</property>
+            <property name="wrap">True</property>
+          </object>
+          <packing>
+            <property name="right_attach">5</property>
+            <property name="top_attach">1</property>
+            <property name="bottom_attach">4</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel" id="label2">
+            <property name="visible">True</property>
+            <property name="label" translatable="yes">Touchscreen Calibration</property>
+            <attributes>
+              <attribute name="weight" value="bold"/>
+            </attributes>
+          </object>
+          <packing>
+            <property name="left_attach">1</property>
+            <property name="right_attach">4</property>
+          </packing>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>

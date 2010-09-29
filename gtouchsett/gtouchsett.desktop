@@ -1,0 +1,14 @@
+
+[Desktop Entry]
+Version=1.0
+Name=Touchscreens
+Comment=Configure your touchscreens
+Name[de]=Touchscreens
+Comment[de]=Touchscreens konfigurieren
+Exec=gtouchsett
+Icon=touchscreen
+Terminal=false
+Type=Application
+Categories=GNOME;GTK;Settings;DesktopSettings;
+StartupNotify=true
+
