@@ -205,7 +205,7 @@ public class SettingsWindow {
 			int exitcode;
 			string err;
 			//TODO escape string
-			string cmd = "/home/dd/daten/Entwicklung/gtouchsett/dev/gtouchsett --set-global '" + selectedDeviceName + "' '" + (selectedMonitorName == null? "" : selectedMonitorName) + "' " + (autoCalibration?"1":"0") + " " +  (autoCalibration?"0":outputMinX.to_string()) + " " + (autoCalibration?"0":outputMaxX.to_string()) + " " + (autoCalibration?"0":outputMinY.to_string()) + " " + (autoCalibration?"0":outputMaxY.to_string()) + " " + (inverseX?"1":"0") + " " + (inverseY?"1":"0") + " " + (swapAxes ?"1":"0");
+			string cmd = "/usr/bin/gtouchsett --set-global '" + selectedDeviceName + "' '" + (selectedMonitorName == null? "" : selectedMonitorName) + "' " + (autoCalibration?"1":"0") + " " +  (autoCalibration?"0":outputMinX.to_string()) + " " + (autoCalibration?"0":outputMaxX.to_string()) + " " + (autoCalibration?"0":outputMinY.to_string()) + " " + (autoCalibration?"0":outputMaxY.to_string()) + " " + (inverseX?"1":"0") + " " + (inverseY?"1":"0") + " " + (swapAxes ?"1":"0");
 			Process.spawn_sync(null, { "/usr/bin/gksu", "--message", "Please enter your password to apply the settings for all users.", cmd}, null, 0, null, null, out err, out exitcode );
 
 			if(exitcode == 0) {
