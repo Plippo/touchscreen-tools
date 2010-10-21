@@ -99,15 +99,37 @@ void swap(int *a, int *b) {
 
 void setCalibration(int id, int minX, int maxX, int minY, int maxY, int flipHoriz, int flipVerti, int axesSwap, int screenWidth, int screenHeight, int outputX, int outputY, int outputWidth, int outputHeight, int rotation) {
 
-	//TODO instead of float, use platform 32 bit float value
+	//TODO instead of float, use platform 32 bit float value if the values are also 32 bit on 64 bit systems
 	float matrix[] = { 1., 0., 0.,    /* [0] [1] [2] */
 	                   0., 1., 0.,    /* [3] [4] [5] */
 	                   0., 0., 1. };  /* [6] [7] [8] */
 
-	//TODO find out if supported
-	int matrixMode = 1;
+	int matrixMode;
+	/* Check if transformation matrix is supported */
+	Atom retType;
+	int retFormat;
+	unsigned long retItems, retBytesAfter;
+	unsigned char * data = NULL;
+	if(XIGetProperty(display, id, XInternAtom(display,
+			"Coordinate Transformation Matrix", 0), 0, 9 * 32, False, floatAtom,
+			&retType, &retFormat, &retItems, &retBytesAfter,
+			&data) != Success) {
+		data = NULL;
+	}
+	if(data != NULL && retItems == 9) {
+		matrixMode = 1;
+	} else {
+		matrixMode = 0;
+	}
+	if(data != NULL) {
+		XFree(data);
+	}
+	
+
 
 	if(matrixMode) {	
+
+		if(debugMode) printf("Use matrix method\n");
 
 		/* Output rotation */
 		if(rotation & RR_Rotate_180) {
