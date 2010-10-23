@@ -142,18 +142,25 @@ void resetCalibration(Display* display, int deviceID) {
 	XDevice *dev = XOpenDevice(display, deviceID);
 	if(dev) {
 		long data[] = { };
-
 		XChangeDeviceProperty(display, dev, XInternAtom(display,
-		"Evdev Axis Calibration", 0), XA_INTEGER, 32, PropModeReplace, (unsigned char*) data, 0);
+			"Evdev Axis Calibration", 0), XA_INTEGER, 32, PropModeReplace, (unsigned char*) data, 0);
 
 		unsigned char data2[] = {0, 0};
 		XChangeDeviceProperty(display, dev, XInternAtom(display,
-		"Evdev Axis Inversion", 0), XA_INTEGER, 8, PropModeReplace, data2, 2);
+			"Evdev Axis Inversion", 0), XA_INTEGER, 8, PropModeReplace, data2, 2);
 
 		unsigned char axesSwap = 0;
 
 		XChangeDeviceProperty(display, dev, XInternAtom(display,
-		"Evdev Axes Swap", 0), XA_INTEGER, 8, PropModeReplace, &axesSwap, 1);
+			"Evdev Axes Swap", 0), XA_INTEGER, 8, PropModeReplace, &axesSwap, 1);
+
+		float data4[] = { 1., 0., 0., 
+		                  0., 1., 0.,
+		                  0., 0., 1. };
+
+		XChangeDeviceProperty(display, dev, XInternAtom(display,
+			"Coordinate Transformation Matrix", 0), XInternAtom(display,
+			"FLOAT", 0), 32, PropModeReplace, (unsigned char*) data4, 9);
 
 		XCloseDevice(display, dev);
 		XFlush(display);
