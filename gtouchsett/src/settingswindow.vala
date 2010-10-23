@@ -11,8 +11,6 @@ public struct DeviceSettings {
 	int outputMaxX;
 	int outputMinY;
 	int outputMaxY;
-	int inverseX;
-	int inverseY;
 	int swapAxes;
 }
 
@@ -88,7 +86,7 @@ public class SettingsWindow {
 	string selectedMonitorName = null;
 	public bool autoCalibration;
 	public int outputMinX; public int outputMaxX; public int outputMinY; public int outputMaxY;
-	public bool inverseX; public bool inverseY; public bool swapAxes;
+	public bool swapAxes;
 
 	void *display;
 
@@ -155,8 +153,6 @@ public class SettingsWindow {
 			outputMaxX = list.deviceSettings[0].outputMaxX;
 			outputMinY = list.deviceSettings[0].outputMinY;
 			outputMaxY = list.deviceSettings[0].outputMaxY;
-			inverseX = (list.deviceSettings[0].inverseX != 0);
-			inverseY = (list.deviceSettings[0].inverseY != 0);
 			swapAxes = (list.deviceSettings[0].swapAxes != 0);
 		}
 
@@ -179,8 +175,6 @@ public class SettingsWindow {
 		d.outputMaxX = outputMaxX;
 		d.outputMinY = outputMinY;
 		d.outputMaxY = outputMaxY;
-		d.inverseX = ( inverseX ? 1 : 0);
-		d.inverseY = ( inverseY ? 1 : 0);
 		d.swapAxes = ( swapAxes ? 1 : 0);
 
 
@@ -205,7 +199,7 @@ public class SettingsWindow {
 			int exitcode;
 			string err;
 			//TODO escape string
-			string cmd = "/usr/bin/gtouchsett --set-global '" + selectedDeviceName + "' '" + (selectedMonitorName == null? "" : selectedMonitorName) + "' " + (autoCalibration?"1":"0") + " " +  (autoCalibration?"0":outputMinX.to_string()) + " " + (autoCalibration?"0":outputMaxX.to_string()) + " " + (autoCalibration?"0":outputMinY.to_string()) + " " + (autoCalibration?"0":outputMaxY.to_string()) + " " + (inverseX?"1":"0") + " " + (inverseY?"1":"0") + " " + (swapAxes ?"1":"0");
+			string cmd = "/usr/bin/gtouchsett --set-global '" + selectedDeviceName + "' '" + (selectedMonitorName == null? "" : selectedMonitorName) + "' " + (autoCalibration?"1":"0") + " " +  (autoCalibration?"0":outputMinX.to_string()) + " " + (autoCalibration?"0":outputMaxX.to_string()) + " " + (autoCalibration?"0":outputMinY.to_string()) + " " + (autoCalibration?"0":outputMaxY.to_string()) + " " + (swapAxes ?"1":"0");
 			Process.spawn_sync(null, { "/usr/bin/gksu", "--message", "Please enter your password to apply the settings for all users.", cmd}, null, 0, null, null, out err, out exitcode );
 
 			if(exitcode == 0) {

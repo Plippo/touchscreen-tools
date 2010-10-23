@@ -175,7 +175,6 @@ public class Calibrator {
 
 		int minX, minY, maxX, maxY;
 
-		//TODO apply (inverse) rotation of screen to coordinates
 		if(monitorName != null) {
 			int rot; int mirrX; int mirrY;
 			if(getOutputRotation(display, (char *) monitorName, out rot, out mirrX, out mirrY) == 1) {
@@ -212,28 +211,7 @@ public class Calibrator {
 
 
 
-/*		//TODO check if axes are inverted and correct that
-		if(false) {
-			swap(ref tapX[0], ref tapY[0]);
-			swap(ref tapX[1], ref tapY[2]);
-			swap(ref tapX[2], ref tapY[1]);
-			swap(ref tapX[3], ref tapY[3]);
-			//TODO set swap property
-		}
-
-		if(tapX[0] > tapX[1] && tapX[2] > tapX[3]) {
-			/* Inverted horizontally /
-			swap(ref tapX[0], ref tapX[1]);
-			swap(ref tapX[2], ref tapX[3]);
-			//TODO set swap property
-		}
-
-		if(tapY[0] > tapY[2] && tapY[1] > tapY[3]) {
-			/* Inverted vertically /
-			swap(ref tapY[0], ref tapY[2]);
-			swap(ref tapY[1], ref tapY[3]);
-			//TODO set swap property
-		} */
+		//TODO check if axes are inverted and correct that
 
 
 		minX = (tapX[0] + tapX[2]) / 2;

@@ -6,7 +6,7 @@ extern void finishXlib(void* display);
 public const string SHARE_DIR = "/usr/share/gtouchsett";
 
 int main(string[] args) {
-	if(args.length >= 12 && args[1] == "--set-global") {
+	if(args.length >= 10 && args[1] == "--set-global") {
 
 		DeviceSettings d = DeviceSettings();
 
@@ -20,9 +20,7 @@ int main(string[] args) {
 		d.outputMaxX = args[6].to_int();
 		d.outputMinY = args[7].to_int();
 		d.outputMaxY = args[8].to_int();
-		d.inverseX = (args[9].to_int() == 0 ? 0 : 1);
-		d.inverseY = (args[10].to_int() == 0 ? 0 : 1);
-		d.swapAxes = (args[11].to_int() == 0 ? 0 : 1);
+		d.swapAxes = (args[9].to_int() == 0 ? 0 : 1);
 
 		DeviceSettingsList list = DeviceSettingsList();
 		loadSettings(&list, null, getGlobalFileName());

@@ -75,7 +75,7 @@ int loadSettings(DeviceSettingsList * list, char * onlyForDevice, char * onlyFil
 }
 
 /* attachedOutput and inputDeviceName will be used, don't free them afterwards!! */
-void addDeviceSettings(DeviceSettingsList * list, char* inputDeviceName, char* attachedOutput, int autoOutput, int autoCalibration, int outputMinX, int outputMaxX, int outputMinY, int outputMaxY, int inverseX, int inverseY, int swapAxes) {
+void addDeviceSettings(DeviceSettingsList * list, char* inputDeviceName, char* attachedOutput, int autoOutput, int autoCalibration, int outputMinX, int outputMaxX, int outputMinY, int outputMaxY, int swapAxes) {
 	if(list->nDeviceSettings + 1 > list->nDeviceSettingsSpace) {
 		list->nDeviceSettingsSpace += 10;
 		list->deviceSettings = realloc(list->deviceSettings, sizeof(DeviceSettings) * list->nDeviceSettingsSpace);
@@ -97,8 +97,6 @@ void addDeviceSettings(DeviceSettingsList * list, char* inputDeviceName, char* a
 	list->deviceSettings[i].outputMaxX = outputMaxX;
 	list->deviceSettings[i].outputMinY = outputMinY;
 	list->deviceSettings[i].outputMaxY = outputMaxY;
-	list->deviceSettings[i].inverseX = inverseX;
-	list->deviceSettings[i].inverseY = inverseY;
 	list->deviceSettings[i].swapAxes = swapAxes;
 	list->deviceSettings[i].inputDeviceIDs = malloc(MAX_DEVICES_PER_PROFILE * sizeof(int));
 	if (list->deviceSettings[i].inputDeviceIDs == NULL) {
@@ -109,7 +107,7 @@ void addDeviceSettings(DeviceSettingsList * list, char* inputDeviceName, char* a
 
 /* settings->attachedOutput and settings->inputDeviceName will be used, don't free them afterwards!! */
 void addDeviceSettingsEntry(DeviceSettingsList * list, DeviceSettings* settings) {
-	addDeviceSettings(list, settings->inputDeviceName, settings->attachedOutput, settings->autoOutput, settings->autoCalibration, settings->outputMinX, settings->outputMaxX, settings->outputMinY, settings->outputMaxY, settings->inverseX, settings->inverseY, settings->swapAxes);
+	addDeviceSettings(list, settings->inputDeviceName, settings->attachedOutput, settings->autoOutput, settings->autoCalibration, settings->outputMinX, settings->outputMaxX, settings->outputMinY, settings->outputMaxY, settings->swapAxes);
 }
 
 void clearDeviceSettingsEntry(DeviceSettings* entry) {
@@ -123,8 +121,6 @@ void clearDeviceSettingsEntry(DeviceSettings* entry) {
 	entry->outputMaxX = 0;
 	entry->outputMinY = 0;
 	entry->outputMaxY = 0;
-	entry->inverseX = 0;
-	entry->inverseY = 0;
 	entry->swapAxes = 0;
 }
 
@@ -186,8 +182,6 @@ void changeProfile(DeviceSettingsList * list, DeviceSettings * newSettings) {
 			list->deviceSettings[i].outputMaxX = newSettings->outputMaxX;
 			list->deviceSettings[i].outputMinY = newSettings->outputMinY;
 			list->deviceSettings[i].outputMaxY = newSettings->outputMaxY;
-			list->deviceSettings[i].inverseX = newSettings->inverseX;
-			list->deviceSettings[i].inverseY = newSettings->inverseY;
 			list->deviceSettings[i].swapAxes = newSettings->swapAxes;
 
 			found = 1;
@@ -203,7 +197,7 @@ void changeProfile(DeviceSettingsList * list, DeviceSettings * newSettings) {
 			strcpy(inp, newSettings->inputDeviceName);
 			/* We don't have to free it as it will be added to list and thus be freed when list is freed */
 		}
-		addDeviceSettings(list, inp, outp, newSettings->autoOutput, newSettings->autoCalibration, newSettings->outputMinX, newSettings->outputMaxX, newSettings->outputMinY, newSettings->outputMaxY, newSettings->inverseX, newSettings->inverseY, newSettings->swapAxes);
+		addDeviceSettings(list, inp, outp, newSettings->autoOutput, newSettings->autoCalibration, newSettings->outputMinX, newSettings->outputMaxX, newSettings->outputMinY, newSettings->outputMaxY, newSettings->swapAxes);
 	}
 
 }
@@ -236,8 +230,6 @@ int saveDeviceSettingsToFile(char * fileName, DeviceSettingsList * list) {
 				fprintf(fileDesc, "maxx=%i\n", profile->outputMaxX);
 				fprintf(fileDesc, "miny=%i\n", profile->outputMinY);
 				fprintf(fileDesc, "maxy=%i\n", profile->outputMaxY);
-				fprintf(fileDesc, "xinverted=%i\n", profile->inverseX);
-				fprintf(fileDesc, "yinverted=%i\n", profile->inverseY);
 				fprintf(fileDesc, "swapaxes=%i\n", profile->swapAxes);
 			}
 			fprintf(fileDesc, "\n");
@@ -324,10 +316,6 @@ int addDeviceSettingsFromFile(char * fileName, DeviceSettingsList * list, char *
 				loadedSettings.outputMaxY = strtol(afEq, NULL, 0);
 				calibLoaded |= BIT_3;
 				
-			} else if(!strcmp(befEq,"xinverted")) {
-				loadedSettings.inverseX = (strtol(afEq, NULL, 0) != 0);
-			} else if(!strcmp(befEq,"yinverted")) {
-				loadedSettings.inverseY = (strtol(afEq, NULL, 0) != 0);
 			} else if(!strcmp(befEq,"swapaxes")) {
 				loadedSettings.swapAxes = (strtol(afEq, NULL, 0) != 0);
 			}

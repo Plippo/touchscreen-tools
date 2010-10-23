@@ -97,7 +97,7 @@ void swap(int *a, int *b) {
 	*b = temp;
 }
 
-void setCalibration(int id, int minX, int maxX, int minY, int maxY, int flipHoriz, int flipVerti, int axesSwap, int screenWidth, int screenHeight, int outputX, int outputY, int outputWidth, int outputHeight, int rotation) {
+void setCalibration(int id, int minX, int maxX, int minY, int maxY, int axesSwap, int screenWidth, int screenHeight, int outputX, int outputY, int outputWidth, int outputHeight, int rotation) {
 
 	//TODO instead of float, use platform 32 bit float value if the values are also 32 bit on 64 bit systems
 	float matrix[] = { 1., 0., 0.,    /* [0] [1] [2] */
@@ -126,6 +126,7 @@ void setCalibration(int id, int minX, int maxX, int minY, int maxY, int flipHori
 	}
 	
 
+	unsigned char flipHoriz = 0, flipVerti = 0;
 
 	if(matrixMode) {	
 
@@ -286,7 +287,7 @@ void handleDisplayChange(XRRScreenChangeNotifyEvent *evt) {
 				if(debugMode) {
 					printf("Calibrate Device with ID %i\n", profiles.deviceSettings[d].inputDeviceIDs[id]);
 				}
-							setCalibration(profiles.deviceSettings[d].inputDeviceIDs[id], profiles.deviceSettings[d].outputMinX, profiles.deviceSettings[d].outputMaxX, profiles.deviceSettings[d].outputMinY, profiles.deviceSettings[d].outputMaxY, profiles.deviceSettings[d].inverseX, profiles.deviceSettings[d].inverseY, profiles.deviceSettings[d].swapAxes, screenWidth, screenHeight, 0, 0, screenWidth, screenHeight, 0); 
+							setCalibration(profiles.deviceSettings[d].inputDeviceIDs[id], profiles.deviceSettings[d].outputMinX, profiles.deviceSettings[d].outputMaxX, profiles.deviceSettings[d].outputMinY, profiles.deviceSettings[d].outputMaxY, profiles.deviceSettings[d].swapAxes, screenWidth, screenHeight, 0, 0, screenWidth, screenHeight, 0); 
 
 			}
 
@@ -312,7 +313,7 @@ void handleDisplayChange(XRRScreenChangeNotifyEvent *evt) {
 								printf("Calibrate Device with ID %i\n", profiles.deviceSettings[d].inputDeviceIDs[id]);
 							}
 
-							setCalibration(profiles.deviceSettings[d].inputDeviceIDs[id], profiles.deviceSettings[d].outputMinX, profiles.deviceSettings[d].outputMaxX, profiles.deviceSettings[d].outputMinY, profiles.deviceSettings[d].outputMaxY, profiles.deviceSettings[d].inverseX, profiles.deviceSettings[d].inverseY, profiles.deviceSettings[d].swapAxes, screenWidth, screenHeight, crtcInf->x, crtcInf->y, crtcInf->width, crtcInf->height, crtcInf->rotation); 
+							setCalibration(profiles.deviceSettings[d].inputDeviceIDs[id], profiles.deviceSettings[d].outputMinX, profiles.deviceSettings[d].outputMaxX, profiles.deviceSettings[d].outputMinY, profiles.deviceSettings[d].outputMaxY, profiles.deviceSettings[d].swapAxes, screenWidth, screenHeight, crtcInf->x, crtcInf->y, crtcInf->width, crtcInf->height, crtcInf->rotation); 
 
 						}
 
@@ -329,8 +330,6 @@ void handleDisplayChange(XRRScreenChangeNotifyEvent *evt) {
 }
 
 void setAutoCalibrationData(int d, XIDeviceInfo * deviceInfo) {
-	profiles.deviceSettings[d].inverseX = 0;
-	profiles.deviceSettings[d].inverseY = 0;
 	profiles.deviceSettings[d].swapAxes = 0;
 
 	int c;
@@ -423,7 +422,7 @@ void handleDeviceChange() {
 					/* Create dummy profile */
 					char *deviceName = malloc((strlen(info[i].name) + 1) * sizeof (char));
 					strcpy(deviceName, info[i].name);
-					addDeviceSettings(&profiles, deviceName, NULL, TRUE, TRUE, 0, 0, 0, 0, 0, 0, 0);
+					addDeviceSettings(&profiles, deviceName, NULL, TRUE, TRUE, 0, 0, 0, 0, 0);
 					profiles.deviceSettings[profiles.nDeviceSettings-1].inputDeviceCount = 1;
 					profiles.deviceSettings[profiles.nDeviceSettings-1].inputDeviceIDs[0] = info[i].deviceid;
 

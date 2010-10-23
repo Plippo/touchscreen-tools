@@ -30,8 +30,8 @@ typedef struct _DeviceSettings {
 	int outputMaxX;
 	int outputMinY;
 	int outputMaxY;
-	int inverseX;
-	int inverseY;
+//	int inverseX;
+//	int inverseY;
 	int swapAxes;
 } DeviceSettings;
 
@@ -41,7 +41,7 @@ typedef struct _DeviceSettingsList {
 	int nDeviceSettingsSpace;
 } DeviceSettingsList;
 
-void addDeviceSettings(DeviceSettingsList*, char*, char*, int, int, int, int, int, int, int, int, int);
+void addDeviceSettings(DeviceSettingsList*, char*, char*, int, int, int, int, int, int, int);
 int loadSettings(DeviceSettingsList*, char *, char *);
 void freeSettings(DeviceSettingsList*);
 int addDeviceSettingsFromFile(char *, DeviceSettingsList *, char *);
