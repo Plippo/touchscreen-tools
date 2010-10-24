@@ -138,12 +138,54 @@ int getLastRawCoordinates(Display* display, int deviceID, int * out_x, int * out
 
 }
 
-void resetCalibration(Display* display, int deviceID) {
+void getMinMaxXY(Display* display, int deviceID, int* out_minX, int* out_maxX, int* out_minY, int* out_maxY) {
+
+	int n;
+	XIDeviceInfo * info = XIQueryDevice(display, deviceID, &n);
+	if (!info) {
+		return;
+	}
+	if(n != 1) {
+		XIFreeDeviceInfo(info);
+		return;
+	}
+
+	int c;
+	for(c = 0; c < info->num_classes; c++) {
+		if(info->classes[c]->type == XIValuatorClass) {
+			XIValuatorClassInfo* valuatorInfo = (XIValuatorClassInfo *) info->classes[c];
+			if(valuatorInfo->mode == XIModeAbsolute) {
+				if(valuatorInfo->label == absXAtom) {
+					*out_minX = valuatorInfo->min;
+					*out_maxX = valuatorInfo->max;
+				} else if(valuatorInfo->label == absYAtom) {
+					*out_minY = valuatorInfo->min;
+					*out_maxY = valuatorInfo->max;
+				}
+			}
+		}
+	}	
+
+	XIFreeDeviceInfo(info);
+
+}
+
+void resetCalibration(Display* display, int deviceID, int factor) {
 	XDevice *dev = XOpenDevice(display, deviceID);
 	if(dev) {
-		long data[] = { };
+		
+
+		int minX = 0, maxX = 1000, minY = 0, maxY = 1000;
+		getMinMaxXY(display, deviceID, &minX, &maxX, &minY, &maxY);
+		minX *= factor;
+		maxX *= factor;
+		minY *= factor;
+		maxY *= factor;
+
+		long data[] = { minX, maxX, minY, maxX };
+		int i;
 		XChangeDeviceProperty(display, dev, XInternAtom(display,
-			"Evdev Axis Calibration", 0), XA_INTEGER, 32, PropModeReplace, (unsigned char*) data, 0);
+			"Evdev Axis Calibration", 0), XA_INTEGER, 32, PropModeReplace, (unsigned char*) data, 4);
 
 		unsigned char data2[] = {0, 0};
 		XChangeDeviceProperty(display, dev, XInternAtom(display,

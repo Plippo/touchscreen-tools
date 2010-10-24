@@ -1,7 +1,9 @@
 using Gtk, Gdk;
 
 extern int getLastRawCoordinates(void * display, int deviceID, out int out_x, out int out_y);
-extern void resetCalibration(void * display, int deviceID);
+extern void resetCalibration(void * display, int deviceID, int coordinateFactor);
+
+extern void getMinMaxXY(void * display, int deviceID, out int minX, out int maxX, out int minY, out int maxY);
 
 extern int getOutputRotation(void * display, char * outputName, out int rotation, out int mirrorX, out int mirrorY);
 
@@ -9,11 +11,17 @@ public class Calibrator {
 	
 	Gtk.Window window;
 	ProgressBar prgTimer;
+	Label lblDesc;
+
+	int coordMaxX;
+	int coordMaxY;
 
 	int tapCount = 0;
 	int timerStep = 0;
 	bool quit = false; 
 	Label cross[4];
+
+	int coordinateFactor = 1;
 
 	int tapX[4];
 	int tapY[4];
@@ -40,6 +48,8 @@ public class Calibrator {
 
 		window = (Gtk.Window) builder.get_object("winCalibrate");
 
+		lblDesc = (Label) builder.get_object("lblDesc");
+
 		prgTimer = (ProgressBar) builder.get_object("prgTimer");
 		for(int i = 0; i < 4; i++) {
 			cross[i] = (Label) builder.get_object("cross" + (i+1).to_string());
@@ -60,7 +70,10 @@ public class Calibrator {
 		window.fullscreen();
 		
 		/* Reset calibration so we get "raw" values */
-		resetCalibration(display, deviceID);
+		resetCalibration(display, deviceID, coordinateFactor);
+
+		int ignore;
+		getMinMaxXY(display, deviceID, out ignore, out coordMaxX, out ignore, out coordMaxY);
 
 		window.show();
 		startTimer();
@@ -126,8 +139,18 @@ public class Calibrator {
 			/* Catch cases in which two taps are too near, either due to the device sending wrong
 			   coordinates or the user clicking with a different input device */
 			if(tapCount > 0 && ((absX - tapX[tapCount - 1]).abs() < 30 && (absY - tapY[tapCount - 1]).abs() < 30)) return;
-			tapX[tapCount] = absX;
-			tapY[tapCount] = absY;
+			tapX[tapCount] = absX * coordinateFactor;
+			tapY[tapCount] = absY * coordinateFactor;
+
+			if(absX >= coordMaxX || absY >= coordMaxY) {
+				coordinateFactor *= 2;
+				resetCalibration(display, deviceID, coordinateFactor);
+				coordMaxX *= 2; coordMaxY *= 2;
+				timerStep = 0;
+				prgTimer.set_fraction(0.99);
+				lblDesc.set_text("<b>Please try this point again.</b>");
+				return;
+			}
 
 			cross[tapCount].set_visible(false);
 
