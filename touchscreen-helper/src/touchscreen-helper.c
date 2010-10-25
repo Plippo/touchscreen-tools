@@ -99,32 +99,32 @@ void swap(int *a, int *b) {
 
 void setCalibration(int id, int minX, int maxX, int minY, int maxY, int axesSwap, int screenWidth, int screenHeight, int outputX, int outputY, int outputWidth, int outputHeight, int rotation) {
 
-	//TODO instead of float, use platform 32 bit float value if the values are also 32 bit on 64 bit systems
 	float matrix[] = { 1., 0., 0.,    /* [0] [1] [2] */
 	                   0., 1., 0.,    /* [3] [4] [5] */
 	                   0., 0., 1. };  /* [6] [7] [8] */
 
-	int matrixMode;
+	int matrixMode = 0;
 	/* Check if transformation matrix is supported */
-	Atom retType;
-	int retFormat;
-	unsigned long retItems, retBytesAfter;
-	unsigned char * data = NULL;
-	if(XIGetProperty(display, id, XInternAtom(display,
-			"Coordinate Transformation Matrix", 0), 0, 9 * 32, False, floatAtom,
-			&retType, &retFormat, &retItems, &retBytesAfter,
-			&data) != Success) {
-		data = NULL;
-	}
-	if(data != NULL && retItems == 9) {
-		matrixMode = 1;
-	} else {
-		matrixMode = 0;
-	}
-	if(data != NULL) {
-		XFree(data);
-	}
-	
+	long l;
+	if((sizeof l) == 4 || (sizeof l) == 8) {
+		/* We only support matrix mode on systems where longs are 32 or 64 bits long */
+		Atom retType;
+		int retFormat;
+		unsigned long retItems, retBytesAfter;
+		unsigned char * data = NULL;
+		if(XIGetProperty(display, id, XInternAtom(display,
+				"Coordinate Transformation Matrix", 0), 0, 9 * 32, False, floatAtom,
+				&retType, &retFormat, &retItems, &retBytesAfter,
+				&data) != Success) {
+			data = NULL;
+		}
+		if(data != NULL && retItems == 9) {
+			matrixMode = 1;
+		}
+		if(data != NULL) {
+			XFree(data);
+		}
+	}	
 
 	unsigned char flipHoriz = 0, flipVerti = 0;
 
@@ -236,8 +236,17 @@ void setCalibration(int id, int minX, int maxX, int minY, int maxY, int axesSwap
 	XDevice *dev = XOpenDevice(display, id);
 	if(dev) {
 		if(matrixMode) {
-			XChangeDeviceProperty(display, dev, XInternAtom(display,
-				"Coordinate Transformation Matrix", 0), floatAtom, 32, PropModeReplace, (unsigned char*) matrix, 9);
+			if((sizeof l) == 4) {
+				XChangeDeviceProperty(display, dev, XInternAtom(display,
+					"Coordinate Transformation Matrix", 0), floatAtom, 32, PropModeReplace, (unsigned char*) matrix, 9);
+			} else if((sizeof l) == 8) {
+				/* Xlib needs the floats long-aligned, so let's align them. */
+				float matrix2[] = { matrix[0], 0., matrix[1], 0., matrix[2], 0.,
+				                    matrix[3], 0., matrix[4], 0., matrix[5], 0.,
+				                    matrix[6], 0., matrix[7], 0., matrix[8], 0.};
+				XChangeDeviceProperty(display, dev, XInternAtom(display,
+					"Coordinate Transformation Matrix", 0), floatAtom, 32, PropModeReplace, (unsigned char*) matrix2, 9);
+			}
 		}
 
 		long calib[] = { minX, maxX, minY, maxY };

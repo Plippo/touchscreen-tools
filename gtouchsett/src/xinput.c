@@ -196,13 +196,26 @@ void resetCalibration(Display* display, int deviceID, int factor) {
 		XChangeDeviceProperty(display, dev, XInternAtom(display,
 			"Evdev Axes Swap", 0), XA_INTEGER, 8, PropModeReplace, &axesSwap, 1);
 
-		float data4[] = { 1., 0., 0., 
-		                  0., 1., 0.,
-		                  0., 0., 1. };
 
-		XChangeDeviceProperty(display, dev, XInternAtom(display,
-			"Coordinate Transformation Matrix", 0), XInternAtom(display,
-			"FLOAT", 0), 32, PropModeReplace, (unsigned char*) data4, 9);
+		long l;
+		if((sizeof l) == 4) {
+			float data4[] = { 1., 0., 0., 
+				          0., 1., 0.,
+				          0., 0., 1. };
+
+			XChangeDeviceProperty(display, dev, XInternAtom(display,
+				"Coordinate Transformation Matrix", 0), XInternAtom(display,
+				"FLOAT", 0), 32, PropModeReplace, (unsigned char*) data4, 9);
+		} else if((sizeof l) == 8) {
+			/* Xlib needs the floats long-aligned, so add "buffer" elements. */
+			float data4[] = { 1., 0., 0., 0., 0., 0., 
+				          0., 0., 1., 0., 0., 0.,
+				          0., 0., 0., 0., 1., 0. };
+
+			XChangeDeviceProperty(display, dev, XInternAtom(display,
+				"Coordinate Transformation Matrix", 0), XInternAtom(display,
+				"FLOAT", 0), 32, PropModeReplace, (unsigned char*) data4, 9);
+		}
 
 		XCloseDevice(display, dev);
 		XFlush(display);
