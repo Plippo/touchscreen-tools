@@ -86,7 +86,7 @@
         <child>
           <object class="GtkLabel" id="lblDesc">
             <property name="visible">True</property>
-            <property name="label" translatable="yes">Please tap with your stylus/finger on the cross and repeat this at every new position. To cancel the calibration, simply wait for a few seconds.</property>
+            <property name="label" translatable="yes">&lt;i&gt;[description]&lt;/i&gt;</property>
             <property name="use_markup">True</property>
             <property name="wrap">True</property>
           </object>

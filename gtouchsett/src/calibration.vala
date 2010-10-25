@@ -16,6 +16,11 @@ public class Calibrator {
 	int coordMaxX;
 	int coordMaxY;
 
+	string DEFAULT_DESC = "Please tap with your stylus/finger on the cross and repeat this at every new position. To cancel the calibration, simply wait for a few seconds.";
+	string REPEAT_DESC_1 = "<b>Please try this point again.</b>";
+	string REPEAT_DESC_2 = "<b>Please try this point another time</b>";
+	string REPEAT_DESC_3 = "<b>Please try this point yet <i>another</i> time</b> (you might have to repeat this a few times until the correct scale has been determined)";
+
 	int tapCount = 0;
 	int timerStep = 0;
 	bool quit = false; 
@@ -71,6 +76,8 @@ public class Calibrator {
 		
 		/* Reset calibration so we get "raw" values */
 		resetCalibration(display, deviceID, coordinateFactor);
+
+		lblDesc.set_markup(DEFAULT_DESC);
 
 		int ignore;
 		getMinMaxXY(display, deviceID, out ignore, out coordMaxX, out ignore, out coordMaxY);
@@ -134,23 +141,33 @@ public class Calibrator {
 	public void tap() {
 		int absX; int absY;
 		if(getLastRawCoordinates(display, deviceID, out absX, out absY) == 1) { 
-			stdout.printf("X: %i, Y: %i\n", absX, absY);
 
 			/* Catch cases in which two taps are too near, either due to the device sending wrong
 			   coordinates or the user clicking with a different input device */
 			if(tapCount > 0 && ((absX - tapX[tapCount - 1]).abs() < 30 && (absY - tapY[tapCount - 1]).abs() < 30)) return;
-			tapX[tapCount] = absX * coordinateFactor;
-			tapY[tapCount] = absY * coordinateFactor;
+			absX *= coordinateFactor;
+			absY *= coordinateFactor;
+			tapX[tapCount] = absX;
+			tapY[tapCount] = absY;
 
-			if(absX >= coordMaxX || absY >= coordMaxY) {
+			stdout.printf("X: %i, Y: %i\n", tapX[tapCount], tapY[tapCount]);
+
+			if(absX >= coordMaxX - coordMaxX/100 || absY >= coordMaxY - coordMaxY/100) {
 				coordinateFactor *= 2;
 				resetCalibration(display, deviceID, coordinateFactor);
 				coordMaxX *= 2; coordMaxY *= 2;
 				timerStep = 0;
 				prgTimer.set_fraction(0.99);
-				lblDesc.set_text("<b>Please try this point again.</b>");
+				if(coordinateFactor == 2) {
+					lblDesc.set_markup(REPEAT_DESC_1);
+				} else if(coordinateFactor == 4) {
+					lblDesc.set_markup(REPEAT_DESC_2);
+				} else {
+					lblDesc.set_markup(REPEAT_DESC_3);
+				}
 				return;
 			}
+			lblDesc.set_markup(DEFAULT_DESC);
 
 			cross[tapCount].set_visible(false);
 
