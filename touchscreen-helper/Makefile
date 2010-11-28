@@ -12,13 +12,15 @@ all: $(OBJECTS)
 	$(CC) -c $(CFLAGS) $<
 
 install:
+	mkdir -p $(BINDIR)
+	mkdir -p $(DESTDIR)/etc/X11/Xsession.d/
 	install --mode=755 $(PROGRAM) $(BINDIR)/
-	install --mode=755 98touchscreen-helper /etc/X11/Xsession.d/
+	install --mode=755 98touchscreen-helper $(DESTDIR)/etc/X11/Xsession.d/
 
 clean:
-	rm *.o $(PROGRAM)
+	rm -f *.o $(PROGRAM)
 
 uninstall:
 	rm $(BINDIR)/$(PROGRAM)
-	rm /etc/X11/Xsession.d/98touchscreen-helper
+	rm $(DESTDIR)/etc/X11/Xsession.d/98touchscreen-helper
 
