@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2010, Philipp Merkel <linux@philmerk.de>
+ Copyright (C) 2010, 2013, Philipp Merkel <linux@philmerk.de>
 
  Permission to use, copy, modify, and/or distribute this software for any
  purpose with or without fee is hereby granted, provided that the above
@@ -30,6 +30,8 @@
 
 #define EXIT_SUCCESS 0
 #define EXIT_FAILURE 1
+
+#define BOOL int
 
 /* Daemonize. Source: http://www-theorie.physik.unizh.ch/~dpotter/howto/daemonize (public domain) */
 static void daemonize(void) {
@@ -86,7 +88,7 @@ Atom absXAtomMT;
 Atom absYAtomMT;
 Atom floatAtom;
 
-int debugMode = 0;
+BOOL debugMode = FALSE;
 
 int randrEvBase = 0;
 int xinputEvBase = 0;
@@ -94,8 +96,9 @@ int xinputEvBase = 0;
 pthread_t signalThread;
 sigset_t signalSet;
 
+BOOL updateSignalReceived = FALSE;
+
 DeviceSettingsList profiles;
-pthread_mutex_t profilesMutex = PTHREAD_MUTEX_INITIALIZER;
 
 void swap(int *a, int *b) {
 	int temp = *a;
@@ -389,16 +392,12 @@ int isAbsoluteInputDevice(XIDeviceInfo * deviceInfo) {
 }
 
 void handleDeviceChange() {
-	if(debugMode) printf("handleDeviceChange\n");	
-
 	int n;
 	XIDeviceInfo *info = XIQueryDevice(display, XIAllDevices, &n);
 	if (!info) {
 		printf("No XInput devices available\n");
 		exit(1);
 	}
-
-	if(debugMode) printf("%i devices\n", n);	
 
 	int d;
 	for(d = 0; d < profiles.nDeviceSettings; d++) {
@@ -408,7 +407,6 @@ void handleDeviceChange() {
 	/* Go through input devices and add to matching profile  */
 	int i;
 	for (i = 0; i < n; i++) {
-		if(debugMode) printf("Device %i (%s)\n", i, info[i].name);
 		if (info[i].use == XIMasterPointer || info[i].use == XIMasterKeyboard) {
 		} else {
 			int foundProfile = FALSE;
@@ -461,23 +459,53 @@ void handleDeviceChange() {
 
 void xLoop() {
 	XEvent ev;
+
+	int eventQueueDesc = XConnectionNumber(display);
+
+	fd_set fds;
+
+	// "break" the event loop to check for notification from the signals thread every 5 seconds
+	struct timeval interval;
+        interval.tv_usec = 0;
+        interval.tv_sec = 5;
+
+	/* main X event loop with 5 seconds "break" */
 	while (1) {
-		XNextEvent(display, &ev);
+
+		/* Create file descriptor set for X event access */
+		FD_ZERO(&fds);
+		FD_SET(eventQueueDesc, &fds);
+
+		select(eventQueueDesc+1, &fds, 0, 0, &interval);
+
+		if(updateSignalReceived)
+		{
+			/* We get a notification from the signals thread */
+			updateSignalReceived = FALSE;
+			if(debugMode) printf("Reload config due to signal\n");
+			freeSettings(&profiles);
+			loadSettings(&profiles, NULL, NULL);
+			handleDeviceChange();
+			XFlush(display);
+		}
+
+		/* Handle X events, if any */
+		while(XPending(display))
+		{
+			XNextEvent(display, &ev);
 	
-		if(ev.type == randrEvBase + RRScreenChangeNotify) {
-			/* Why isn't this magic constant explained anywhere?? */
-			pthread_mutex_lock( &profilesMutex );
-			handleDisplayChange((XRRScreenChangeNotifyEvent *) &ev);	
-			pthread_mutex_unlock( &profilesMutex );
-		} else if(XGetEventData(display, &ev.xcookie)) {
-			if(ev.xcookie.evtype == XI_HierarchyChanged) {
-				pthread_mutex_lock( &profilesMutex );
-				if(debugMode) {
-					printf("XInput device change, reload devices.\n");
+			if(ev.type == randrEvBase + RRScreenChangeNotify) {
+				/* RandR event */
+				handleDisplayChange((XRRScreenChangeNotifyEvent *) &ev);	
+			} else if(XGetEventData(display, &ev.xcookie)) {
+				/* XInput event */
+				if(ev.xcookie.evtype == XI_HierarchyChanged) {
+					if(debugMode) {
+						printf("XInput device change, reload devices.\n");
+					}
+					handleDeviceChange();
+					XFreeEventData(display, &ev.xcookie);
 				}
-				handleDeviceChange();
-				XFreeEventData(display, &ev.xcookie);
-				pthread_mutex_unlock( &profilesMutex );
 			}
 		}
 	}
@@ -488,27 +516,21 @@ void * signalThreadFunction(void *arg) {
 	int sig;
 	while(1) {
 		sigwait ( &signalSet, &sig );
-		pthread_mutex_lock( &profilesMutex );
-		if(debugMode) printf("Reload config due to signal\n");
-		freeSettings(&profiles);
-		loadSettings(&profiles, NULL, NULL);
-		handleDeviceChange();
-		XFlush(display);
-		if(debugMode) printf("Finished reloading\n");
-		pthread_mutex_unlock( &profilesMutex );
+		/* Trigger update of profile settings */
+		updateSignalReceived = TRUE;
 	}
 }
 
 
 int main(int argc, char **argv) {
 
-	int doDaemonize = 1;
+	BOOL doDaemonize = TRUE;
 
 	int i;
 	for (i = 1; i < argc; i++) {
 		if (strcmp(argv[i], "--debug") == 0) {
-			doDaemonize = 0;
-			debugMode = 1;
+			doDaemonize = FALSE;
+			debugMode = TRUE;
 		}
 
 	}
@@ -536,10 +558,6 @@ int main(int argc, char **argv) {
 
 	lastScreenWidth = DisplayWidth(display, screenNum);
 	lastScreenHeight = DisplayHeight(display, screenNum);
-
-	/* We have two threads accessing X */
-	XInitThreads();
-
 
 	int opcode, error;
 	if (!XQueryExtension(display, "RANDR", &opcode, &randrEvBase,
@@ -577,8 +595,6 @@ int main(int argc, char **argv) {
 		exit(1);
 	}
 	
-
-
 	XRRSelectInput(display, root, RRScreenChangeNotifyMask | RROutputChangeNotifyMask | RROutputPropertyNotifyMask | RRCrtcChangeNotifyMask);
 
 	/* Register for XInput device change events */
