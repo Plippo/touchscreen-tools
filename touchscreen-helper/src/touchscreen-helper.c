@@ -71,6 +71,7 @@ static void daemonize(void) {
 	r = freopen("/dev/null", "r", stdin);
 	r = freopen("/dev/null", "w", stdout);
 	r = freopen("/dev/null", "w", stderr);
+	r = r;
 }
 
 Display *display;
@@ -81,9 +82,14 @@ int lastScreenHeight;
 
 Atom absXAtom;
 Atom absYAtom;
+Atom absXAtomMT;
+Atom absYAtomMT;
 Atom floatAtom;
 
 int debugMode = 0;
+
+int randrEvBase = 0;
+int xinputEvBase = 0;
 
 pthread_t signalThread;
 sigset_t signalSet;
@@ -346,10 +352,10 @@ void setAutoCalibrationData(int d, XIDeviceInfo * deviceInfo) {
 		if(deviceInfo->classes[c]->type == XIValuatorClass) {
 			XIValuatorClassInfo* valuatorInfo = (XIValuatorClassInfo *) deviceInfo->classes[c];
 			if(valuatorInfo->mode == XIModeAbsolute) {
-				if(valuatorInfo->label == absXAtom) {
+				if(valuatorInfo->label == absXAtom || valuatorInfo->label == absXAtomMT) {
 					profiles.deviceSettings[d].outputMinX = valuatorInfo->min;
 					profiles.deviceSettings[d].outputMaxX = valuatorInfo->max;
-				} else if(valuatorInfo->label == absYAtom) {
+				} else if(valuatorInfo->label == absYAtom || valuatorInfo->label == absYAtomMT) {
 					profiles.deviceSettings[d].outputMinY = valuatorInfo->min;
 					profiles.deviceSettings[d].outputMaxY = valuatorInfo->max;
 				}
@@ -368,10 +374,10 @@ int isAbsoluteInputDevice(XIDeviceInfo * deviceInfo) {
 		if(deviceInfo->classes[c]->type == XIValuatorClass) {
 			XIValuatorClassInfo* valuatorInfo = (XIValuatorClassInfo *) deviceInfo->classes[c];
 			if(valuatorInfo->mode == XIModeAbsolute) {
-				if(valuatorInfo->label == absXAtom) {
+				if(valuatorInfo->label == absXAtom || valuatorInfo->label == absXAtomMT) {
 					xFound = TRUE;
 					if(yFound) return TRUE;
-				} else if(valuatorInfo->label == absYAtom) {
+				} else if(valuatorInfo->label == absYAtom || valuatorInfo->label == absYAtomMT) {
 					yFound = TRUE;
 					if(xFound) return TRUE;
 				}
@@ -383,7 +389,7 @@ int isAbsoluteInputDevice(XIDeviceInfo * deviceInfo) {
 }
 
 void handleDeviceChange() {
-	
+	if(debugMode) printf("handleDeviceChange\n");	
 
 	int n;
 	XIDeviceInfo *info = XIQueryDevice(display, XIAllDevices, &n);
@@ -391,6 +397,8 @@ void handleDeviceChange() {
 		printf("No XInput devices available\n");
 		exit(1);
 	}
+
+	if(debugMode) printf("%i devices\n", n);	
 
 	int d;
 	for(d = 0; d < profiles.nDeviceSettings; d++) {
@@ -400,6 +408,7 @@ void handleDeviceChange() {
 	/* Go through input devices and add to matching profile  */
 	int i;
 	for (i = 0; i < n; i++) {
+		if(debugMode) printf("Device %i (%s)\n", i, info[i].name);
 		if (info[i].use == XIMasterPointer || info[i].use == XIMasterKeyboard) {
 		} else {
 			int foundProfile = FALSE;
@@ -455,7 +464,7 @@ void xLoop() {
 	while (1) {
 		XNextEvent(display, &ev);
 	
-		if(ev.type == 101) {
+		if(ev.type == randrEvBase + RRScreenChangeNotify) {
 			/* Why isn't this magic constant explained anywhere?? */
 			pthread_mutex_lock( &profilesMutex );
 			handleDisplayChange((XRRScreenChangeNotifyEvent *) &ev);	
@@ -485,6 +494,7 @@ void * signalThreadFunction(void *arg) {
 		loadSettings(&profiles, NULL, NULL);
 		handleDeviceChange();
 		XFlush(display);
+		if(debugMode) printf("Finished reloading\n");
 		pthread_mutex_unlock( &profilesMutex );
 	}
 }
@@ -515,6 +525,8 @@ int main(int argc, char **argv) {
 
 	absXAtom = XInternAtom(display, "Abs X", FALSE);
 	absYAtom = XInternAtom(display, "Abs Y", FALSE);
+	absXAtomMT = XInternAtom(display, "Abs MT Position X", False);
+	absYAtomMT = XInternAtom(display, "Abs MT Position Y", False);
 	floatAtom = XInternAtom(display, "FLOAT", FALSE);
 
 	/* Read X data */
@@ -529,8 +541,8 @@ int main(int argc, char **argv) {
 	XInitThreads();
 
 
-	int opcode, event, error;
-	if (!XQueryExtension(display, "RANDR", &opcode, &event,
+	int opcode, error;
+	if (!XQueryExtension(display, "RANDR", &opcode, &randrEvBase,
 			&error)) {
 		printf("X RANDR extension not available.\n");
 		XCloseDisplay(display);
@@ -550,7 +562,7 @@ int main(int argc, char **argv) {
 	}
 
 	/* XInput Extension available? */
-	if (!XQueryExtension(display, "XInputExtension", &opcode, &event,
+	if (!XQueryExtension(display, "XInputExtension", &opcode, &xinputEvBase,
 			&error)) {
 		printf("X Input extension not available.\n");
 		XCloseDisplay(display);

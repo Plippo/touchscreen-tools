@@ -15,12 +15,12 @@ int main(string[] args) {
 		if(outputName.length == 0) outputName = null;
 		d.attachedOutput = (char *) outputName;
 		d.autoOutput = 0;
-		d.autoCalibration = (args[4].to_int() == 0 ? 0 : 1);
-		d.outputMinX = args[5].to_int();
-		d.outputMaxX = args[6].to_int();
-		d.outputMinY = args[7].to_int();
-		d.outputMaxY = args[8].to_int();
-		d.swapAxes = (args[9].to_int() == 0 ? 0 : 1);
+		d.autoCalibration = (int.parse(args[4]) == 0 ? 0 : 1);
+		d.outputMinX = int.parse(args[5]);
+		d.outputMaxX = int.parse(args[6]);
+		d.outputMinY = int.parse(args[7]);
+		d.outputMaxY = int.parse(args[8]);
+		d.swapAxes = (int.parse(args[9]) == 0 ? 0 : 1);
 
 		DeviceSettingsList list = DeviceSettingsList();
 		loadSettings(&list, null, getGlobalFileName());
@@ -43,8 +43,7 @@ int main(string[] args) {
 		/* As there seems to be no way to get the Xlib Display object from GTK, we need our
 		   own connection to the X Server to be able to access XInput2 directly for the calibration. */
 		void* display = initXlib();
-
-		/* GTK initialisation and main loop */
+			/* GTK initialisation and main loop */
 		Gtk.init(ref args);
 		SettingsWindow sw = new SettingsWindow(display);
 		sw.show();

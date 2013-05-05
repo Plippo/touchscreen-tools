@@ -9,6 +9,8 @@
 
 Atom absXAtom;
 Atom absYAtom;
+Atom absXAtomMT;
+Atom absYAtomMT;
 
 typedef struct _InputDeviceInformation {
 	char* deviceName;
@@ -23,10 +25,10 @@ int isAbsoluteInputDevice(XIDeviceInfo * deviceInfo) {
 		if(deviceInfo->classes[c]->type == XIValuatorClass) {
 			XIValuatorClassInfo* valuatorInfo = (XIValuatorClassInfo *) deviceInfo->classes[c];
 			if(valuatorInfo->mode == XIModeAbsolute) {
-				if(valuatorInfo->label == absXAtom) {
+				if(valuatorInfo->label == absXAtom || valuatorInfo->label == absXAtomMT) {
 					xFound = 1;
 					if(yFound) return 1;
-				} else if(valuatorInfo->label == absYAtom) {
+				} else if(valuatorInfo->label == absYAtom || valuatorInfo->label == absYAtomMT) {
 					yFound = 1;
 					if(xFound) return 1;
 				}
@@ -40,6 +42,8 @@ int isAbsoluteInputDevice(XIDeviceInfo * deviceInfo) {
 InputDeviceInformation * getTouchscreens(Display* display) {
 	absXAtom = XInternAtom(display, "Abs X", False);
 	absYAtom = XInternAtom(display, "Abs Y", False);
+	absXAtomMT = XInternAtom(display, "Abs MT Position X", False);
+	absYAtomMT = XInternAtom(display, "Abs MT Position Y", False);
 
 	int n;
 	int touchscreenCount = 0;
@@ -47,11 +51,15 @@ InputDeviceInformation * getTouchscreens(Display* display) {
 	if (!info) {
 		return NULL;
 	}
+
 	int i;
 	for (i = 0; i < n; i++) {
+		printf("Device %i (%s)\n", i, info[i].name);
 		if (info[i].use == XIMasterPointer || info[i].use == XIMasterKeyboard) {
+			printf("  Is Master pointer/Master keyboard\n");
 		} else {
 			if(isAbsoluteInputDevice(&(info[i]))) {
+				printf("  Is absolute input device\n");
 				touchscreenCount++;
 			}
 		}
@@ -118,10 +126,10 @@ int getLastRawCoordinates(Display* display, int deviceID, int * out_x, int * out
 		if(info[0].classes[c]->type == XIValuatorClass) {
 			XIValuatorClassInfo* valuatorInfo = (XIValuatorClassInfo *) info[0].classes[c];
 			if(valuatorInfo->mode == XIModeAbsolute) {
-				if(valuatorInfo->label == absXAtom) {
+				if(valuatorInfo->label == absXAtom || valuatorInfo->label == absXAtomMT) {
 					xFound = 1;
 					* out_x = valuatorInfo->value;
-				} else if(valuatorInfo->label == absYAtom) {
+				} else if(valuatorInfo->label == absYAtom || valuatorInfo->label == absYAtomMT) {
 					yFound = 1;
 					* out_y = valuatorInfo->value;
 				}
@@ -155,10 +163,10 @@ void getMinMaxXY(Display* display, int deviceID, int* out_minX, int* out_maxX, i
 		if(info->classes[c]->type == XIValuatorClass) {
 			XIValuatorClassInfo* valuatorInfo = (XIValuatorClassInfo *) info->classes[c];
 			if(valuatorInfo->mode == XIModeAbsolute) {
-				if(valuatorInfo->label == absXAtom) {
+				if(valuatorInfo->label == absXAtom || valuatorInfo->label == absXAtomMT) {
 					*out_minX = valuatorInfo->min;
 					*out_maxX = valuatorInfo->max;
-				} else if(valuatorInfo->label == absYAtom) {
+				} else if(valuatorInfo->label == absYAtom || valuatorInfo->label == absYAtomMT) {
 					*out_minY = valuatorInfo->min;
 					*out_maxY = valuatorInfo->max;
 				}

@@ -8,6 +8,9 @@ VALAFILES = src/gtouchsett.vala src/testarea.vala src/settingswindow.vala src/ca
 all: 
 	valac $(VALAFILES) -o $(PROGRAM) $(LIBS) $(PKGS)
 
+ccode: 
+	valac -C $(VALAFILES) -o $(PROGRAM) $(LIBS) $(PKGS)
+
 release: clean
 	valac -X -O2 $(VALAFILES) -o $(PROGRAM) $(LIBS) $(PKGS)
 

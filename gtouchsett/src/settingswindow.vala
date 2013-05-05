@@ -265,10 +265,14 @@ public class SettingsWindow {
 			try {
 				Process.spawn_command_line_async("gnome-display-properties");
 			} catch(SpawnError e) {
-				MessageDialog md = new MessageDialog(window, Gtk.DialogFlags.MODAL, Gtk.MessageType.ERROR, Gtk.ButtonsType.CLOSE, "Error loading the application");
-				md.secondary_text = e.message;
-				md.run();
-				md.destroy();
+				try {
+					Process.spawn_command_line_async("gnome-control-center display");
+				} catch(SpawnError e) {
+					MessageDialog md = new MessageDialog(window, Gtk.DialogFlags.MODAL, Gtk.MessageType.ERROR, Gtk.ButtonsType.CLOSE, "Error loading the application");
+					md.secondary_text = e.message;
+					md.run();
+					md.destroy();
+				}
 			}
 
 		});

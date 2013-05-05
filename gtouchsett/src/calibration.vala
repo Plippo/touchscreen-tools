@@ -89,10 +89,9 @@ public class Calibrator {
 
 	void connect_signals() {
 		window.map_event.connect(() => {
-			Color col_black = Gdk.Color();
+/*			Color col_black = Gdk.Color();
 			var pix_data = "#define invisible_cursor_width 1\n#define invisible_cursor_height 1\n#define invisible_cursor_x_hot 0\n#define invisible_cursor_y_hot 0\nstatic unsigned short invisible_cursor_bits[] = {\n0x0000 };";
 			var pix = Gdk.Pixmap.create_from_data(window.window, pix_data, 1, 1, 1, col_black, col_black);
-
 			Gdk.GrabStatus s = Gdk.pointer_grab
 (window.window, true, Gdk.EventMask.BUTTON_RELEASE_MASK, null, new Cursor.from_pixmap(pix, pix, col_black, col_black, 0, 0), 0);
 			if(s != Gdk.GrabStatus.SUCCESS) {
@@ -102,7 +101,7 @@ public class Calibrator {
 				md.run();
 				md.destroy();
 				cancel();
-			}
+			}*/
 			//stdout.printf("%i, %i %i %i %i\n", s, Gdk.GrabStatus.ALREADY_GRABBED, Gdk.GrabStatus.FROZEN, Gdk.GrabStatus.INVALID_TIME, Gdk.GrabStatus.NOT_VIEWABLE);
 			return false;
 		});
